@@ -10,7 +10,8 @@ const userMockData = [
     username: "admin",
     password: "1234",
     fullname: "ADMIN",
-    role: 'admin'
+    role: 'admin',
+    isActive: true
   }
 ];
 
@@ -32,6 +33,11 @@ router.post("/login", (req, res) => {
   if (!existingUser) {
     return res.status(401).json({
       message: "Invalid username or password!",
+    });
+  }
+  if (!existingUser.isActive) {
+    return res.status(401).json({
+      message: "Not active!",
     });
   }
 
@@ -80,15 +86,77 @@ router.post("/signup", (req, res) => {
     });
   }
 
+  let id = uuidv4()
   const newUser = {
     ...body,
-    id: uuidv4(),
-    role: 'guest' // default
+    id: id,
+    role: 'guest', // default,
+    isActive: false
   };
 
   userMockData.push(newUser);
+  const jwtPayload = {
+    username: username,
+    id: id,
+    password: password
+  };
 
-  res.json({message: 'Success'});
+  const token = jwt.sign(jwtPayload, process.env.SECRET_KEY, {
+    expiresIn: "120s",
+  });
+  res.json({message: 'Success', accessToken: token,});
 });
 
+
+router.post("/verify", (req, res) => {
+  const { token } = req.body;
+
+  if (!token) { // http status
+    return res.status(404).json({
+      message: "Token is not found",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const {username, password} = decoded;
+    //   1. Validation
+    if (!username || !password) {
+      return res.status(400).json({
+        message: "Token is invalid!",
+      });
+    }
+
+    //   2. Check authentication
+    const existingUserIndex = userMockData.findIndex(
+      (u) => u.username === username && u.password === password
+    );
+
+    if (existingUserIndex === -1) {
+      return res.json({
+        message: "User is not exist",
+      });
+    }
+  
+    const updatedUser = {
+      ...userMockData[existingUserIndex],
+      isActive: true
+    };
+  
+    userMockData[existingUserIndex] = updatedUser;
+
+    res.json({message: 'User is active!'});
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(403).json({
+        message: "Token is expired",
+      });
+    }
+
+    return res.status(401).json({
+      message: "Token is not valid",
+    });
+  }
+
+});
 export default router;
