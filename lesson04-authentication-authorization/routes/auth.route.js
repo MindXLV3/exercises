@@ -10,6 +10,7 @@ const userMockData = [
     username: "admin",
     password: "1234",
     fullname: "ADMIN",
+    role: 'admin'
   }
 ];
 
@@ -44,6 +45,7 @@ router.post("/login", (req, res) => {
     username: existingUser.username,
     id: existingUser.id,
     fullname: existingUser.fullname,
+    role: existingUser.role
   };
 
   const token = jwt.sign(jwtPayload, process.env.SECRET_KEY, {
@@ -81,6 +83,7 @@ router.post("/signup", (req, res) => {
   const newUser = {
     ...body,
     id: uuidv4(),
+    role: 'guest' // default
   };
 
   userMockData.push(newUser);

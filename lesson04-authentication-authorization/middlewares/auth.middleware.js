@@ -4,14 +4,13 @@ export const authMiddleware = (req, res, next) => {
   const token = req.headers["x-access-token"];
 
   if (!token) {
-    return res.status(400).json({
-      message: "Token is not provided",
-    });
+    next()
   }
 
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     console.log(decoded)
+    req.role = decoded.role;
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
