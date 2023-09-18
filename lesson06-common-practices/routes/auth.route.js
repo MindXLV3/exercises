@@ -92,6 +92,17 @@ router.post("/signup", async (req, res) => {
   const existingUser = await UserModel.findOne({email});
 
   if (existingUser) {
+    if (existingUser.isActive){
+      return res.status(401).json({
+        message: "User has already exist!",
+      });
+    } else {
+      await UserModel.deleteOne({email})
+    }
+  }
+
+
+  if (existingUser) {
     return res.status(401).json({
       message: "User has already exist!",
     });
