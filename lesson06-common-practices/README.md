@@ -12,3 +12,9 @@ Mỗi lần Client HTTP Request
                                              1. Hop le
                                              2. Het han                                         
                                              3. Khong hop le
+
+
+                                            signup -> email, password 
+                                            - Check {email: email, isActive: true} -> true? error : 
+                                                    + email, isActive: false -> updateOne
+                                                    + not found -> insert (save)
